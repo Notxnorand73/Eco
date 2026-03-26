@@ -1,5 +1,3 @@
-#f'[ECO] Error!\n> File = {self.filename}\n> Line {self.line}, {self.reason}\n> {self.content}'
-
 class Eco:
     def __init__(self):
         self.stack = []
@@ -118,7 +116,7 @@ class Eco:
             if self.stack[-1] == 0:
                 print(f'[ECO] Error!\n> Line {self.ip+1}, Zero Division.\n> \'{self.code[self.ip]}\'')
                 raise Exception
-            added = (self.stack[-2] / self.stack[-1])
+            added = (self.stack[-2] // self.stack[-1])
             self.stack.pop()
             self.stack.pop()
             self.stack.append(added)
@@ -130,9 +128,33 @@ class Eco:
             self.stack.pop()
             self.stack.pop()
             self.stack.append(added)
+        elif opcode == 'REV':
+            if len(self.stack) <= 1:
+                print(f'[ECO] Error!\n> Line {self.ip+1}, Stackunderflow.\n> \'{self.code[self.ip]}\'')
+                raise Exception
+            added1 = self.stack[-1]
+            added2 = self.stack[-2]
+            self.stack.pop()
+            self.stack.pop()
+            self.stack.append(added1)
+            self.stack.append(added2)
+        elif opcode == 'FETCH':
+            try:
+                int(operand)
+            except:
+                print(f'[ECO] Error!\n> Line {self.ip+1}, Expected integer.\n> \'{self.code[self.ip]}\'')
+                raise Exception
+            if len(self.stack) < int(operand):
+                print(f'[ECO] Error!\n> Line {self.ip+1}, Stackunderflow.\n> \'{self.code[self.ip]}\'')
+                raise Exception
+            added = self.stack[-int(operand)]
+            self.stack.pop(-int(operand))
+            self.stack.append(added)
         else:
             print(f'[ECO] Error!\n> Line {self.ip+1}, Unknown command.\n> \'{self.code[self.ip]}\'')
             raise Exception
+
+code = []
 
 eco = Eco() 
 import sys
@@ -146,3 +168,47 @@ if __name__ == '__main__':
                 eco.run(src)
         except Exception as e:
             print(f'[ECO] Error!\n> File not found.')
+    else:
+        print('''  ____
+ | ___)
+ | |     ___   ___
+ | __)  / __) /   \\
+ | |_   |(__  | O |
+ |____) \\___) \\___/''')
+        print('Eco repl, enter EXIT 0 to exit.')
+        code = []
+        while True:
+            line = input('> ')
+            data = line.strip().split()
+            if len(data) <= 1:
+                if not data:
+                    continue
+                elif data[0] == '#':
+                    continue
+                print(f'[ECO] Error!\n> Operand doesn\'t exist.\n> \'{line}\'')
+                continue
+            elif data[0] == 'EXIT':
+                try:
+                    int(data[1])
+                    exit()
+                except:
+                    print(f'[ECO] Error!\n> Expected integer.\n> \'{line}\'')
+                    continue
+            elif data[0] == 'RUN':
+                try:
+                    int(data[1])
+                    eco.run(code)
+                    print()
+                    continue
+                except:
+                    print(f'[ECO] Error!\n> Expected integer.\n> \'{line}\'')
+                    continue
+            elif data[0] == 'FULL':
+                try:
+                    int(data[1])
+                    print('\n'.join(code))
+                    continue
+                except:
+                    print(f'[ECO] Error!\n> Expected integer.\n> \'{line}\'')
+                    continue
+            code.append(line)
